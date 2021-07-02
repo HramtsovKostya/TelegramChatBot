@@ -41,10 +41,7 @@ class DebugLogger(object):
     
     @staticmethod
     def get(name: str):
-        fmt = log.Formatter(
-            fmt=DebugLogger.__LOG_FORMAT,
-            datefmt=DebugLogger.__DATE_FORMAT
-        )
+        fmt = DebugLogger.__formatter()
         
         file_hdl = DebugLogger.__file_handler(fmt)
         str_hdl = DebugLogger.__str_handler(fmt)
@@ -55,6 +52,13 @@ class DebugLogger(object):
         logger.addHandler(file_hdl)
         logger.addHandler(str_hdl) 
         return logger
+
+    @staticmethod
+    def __formatter():
+        return log.Formatter(
+            fmt=DebugLogger.__LOG_FORMAT,
+            datefmt=DebugLogger.__DATE_FORMAT
+        )
     
     @staticmethod
     def __file_handler(fmt: log.Formatter):
