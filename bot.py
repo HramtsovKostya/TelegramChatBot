@@ -11,6 +11,7 @@ from telebot import types as ts
 # -------------------------------------------------------------------------
 
 bot = tb.TeleBot(cnf.TOKEN)
+df_sheet = pd.DataFrame()
 all_users = []
 
 # ------------------------------- START -----------------------------------
@@ -122,10 +123,16 @@ def add_user(user: User):
 
 if __name__ == '__main__':
 	all_users = User.load(cnf.USERS_LIST_FILE)
+	df_sheet = SheetParser.load(cnf.SPREAD_SHEET_FILE)
 
-# 	parser = SheetParser()
-# 	parser.get_data()
-# 	parser.save_json()
+	# parser = SheetParser(
+	# 	cnf.CREDENTIALS_FILE, [
+	# 	cnf.GOOGLE_SHEETS_API,
+	# 	cnf.GOOGLE_DRIVE_API
+	# ])
+
+	# df_sheet = parser.get(cnf.SPREAD_SHEET_ID, head=3)
+	# SheetParser.save(df_sheet, cnf.SPREAD_SHEET_FILE)
 
 	notifier = BotNotifier(bot)
 	notifier.start()

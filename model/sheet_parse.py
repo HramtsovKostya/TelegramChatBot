@@ -1,41 +1,33 @@
 # -------------------------------- PARSER ---------------------------------
  
-import config as cnf
 import gspread as gs
-import json
+import pandas as pd
 
 from oauth2client.service_account import ServiceAccountCredentials as sac
+from os import path
 
 # -------------------------------------------------------------------------
 
 class SheetParser(object):
-	def __init__(self):
-		self.__scope = [
-			cnf.GOOGLE_SHEETS_API,
-			cnf.GOOGLE_DRIVE_API]
+	def __init__(self, scope: list, key: str):
+		creds = sac.from_json_keyfile_name(key, scope)
+		self.__client = gs.authorize(creds)
 
-		self.__creds = sac.from_json_keyfile_name(
-		cnf.CREDENTIALS_FILE, self.__scope)
+	def get(self, sheet_id: str, index: int = 0, head: int = 1) -> pd.DataFrame:
+		wb = self.__client.open_by_key(sheet_id)
+		sheet = wb.get_worksheet(index)
+		data = sheet.get_all_records(head=head)
+		return pd.DataFrame(data, columns=data[0].keys())
 
-		self.__client = gs.authorize(self.__creds)
+	@staticmethod
+	def save(df: pd.DataFrame, file_name: str):
+		df.to_csv(file_name, sep=';')
 
-	def get_data(self):
-		sh = self.__client.open_by_key(cnf.SPREAD_SHEET_ID).sheet1
-		self.__data = sh.get_all_records()
-		return self.__data
-
-	def save_json(self):
-		with open(cnf.SPREAD_SHEET_FILE, 'w', encoding='utf-8') as f:
-			json.dump(self.__data, f, indent=4, ensure_ascii=False)
-		print('Данные успешно записаны!')
-
-	def load_json(self):
-		with open(cnf.SPREAD_SHEET_FILE, 'r', encoding='utf-8') as f:
-			self.__data = json.load(f)
-		print('Данные успешно прочтены!')
-		return self.__data
-
-	def to_str(self, data):
-		return json.dumps(data, indent=4, ensure_ascii=False)
+	@staticmethod
+	def load(file_name: str) -> pd.DataFrame:
+		df_sheet = pd.DataFrame()
+		if path.exists(file_name):
+			df_sheet = pd.read_csv(file_name, delimiter=';')
+		return df_sheet
 
 # -------------------------------------------------------------------------
