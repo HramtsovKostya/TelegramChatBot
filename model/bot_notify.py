@@ -15,15 +15,6 @@ class BotNotifier(object):
 		self.__is_working = True
 
 	def __notify(self):
-		# users = set()
-
-		# if path.exists(cnf.USERS_LIST_FILE):
-		# 	with open(cnf.USERS_LIST_FILE, 'r') as f:
-		# 		for user in f:
-		# 			users.add(user)					
-		# 	for user in users:
-		# 		self.__bot.send_message(int(user), 'Я тебя уведомил!')
-
 		print('Уведомления разосланы!')
 
 	def __schedule(self):

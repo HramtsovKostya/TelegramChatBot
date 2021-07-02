@@ -126,8 +126,7 @@ class User(object):
             users = [User.from_dict(row) for i, row in df_users.iterrows()] 
         return users    
 
-    def exists(self, users: list) -> bool:
-        
+    def exists(self, users: list) -> bool:        
         df = User.to_df(users)        
         id_found = (df[str(UserKey.CHAT_ID)] == self.chat_id).any()
         name_found = (df[UserKey.USER_NAME] == self.user_name).any()
