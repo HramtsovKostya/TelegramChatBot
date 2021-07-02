@@ -13,7 +13,7 @@ class Role(object):
     TEACHER, GROUP, ADMIN = tuple(__ROLES)
 
     @staticmethod
-    def roles() -> list:
+    def roles() -> list[str]:
         return Role.__ROLES
 
 # -------------------------------------------------------------------------
@@ -23,7 +23,7 @@ class Status(object):
     GUEST, SUBSCRIBER = tuple(__STATUSES)
 
     @staticmethod
-    def statuses() -> list:
+    def statuses() -> list[str]:
         return Status.__STATUSES
 
 # -------------------------------------------------------------------------
@@ -40,7 +40,7 @@ class UserKey(object):
     CHAT_ID, USER_NAME, ROLE, STATUS, REG_DATE = tuple(__USER_KEYS)
 
     @staticmethod
-    def user_keys() -> list:
+    def user_keys() -> list[str]:
         return UserKey.__USER_KEYS
 
 # -------------------------------------------------------------------------

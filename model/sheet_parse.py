@@ -9,7 +9,7 @@ from os import path
 # -------------------------------------------------------------------------
 
 class SheetParser(object):
-	def __init__(self, scope: list, key: str):
+	def __init__(self, scope: list[str], key: str):
 		creds = sac.from_json_keyfile_name(key, scope)
 		self.__client = gs.authorize(creds)
 

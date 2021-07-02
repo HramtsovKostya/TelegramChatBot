@@ -72,7 +72,7 @@ def handle_authors(message):
 # ------------------------------- TEXT -----------------------------------
 
 @bot.message_handler(content_types=['text'])
-def handle_text(message):
+def handle_text(message):  # sourcery no-metrics
 	if message.chat.type == 'private':
 		if message.text == "Регистрация":
 			first_name = message.from_user.first_name
@@ -120,7 +120,6 @@ def add_user(user: User):
 		bot.send_message(user.chat_id, 'Вы успешно зарегистрированы!')
 
 # --------------------------- RUN CHAT-BOT ------------------------------
-
 if __name__ == '__main__':
 	all_users = User.load(cnf.USERS_LIST_FILE)
 	df_sheet = SheetParser.load(cnf.SPREAD_SHEET_FILE)
