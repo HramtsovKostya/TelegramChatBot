@@ -47,9 +47,10 @@ if __name__ == '__main__':
     is_equals, week = is_next_week(date['Дата начала курса'])
     
     if date is not None and is_equals:
-        module = week // 4 if week % 4 == 0 else week // 4 + 1
-        lesson = week % 4 if week % 4 > 0 else 4 
-                
+        for week in range(12):
+            lesson = week % 4 if week % 4 > 0 else 4 
+            module =  week // 4 if week % 4 == 0 else week // 4 + 1
+        
         message = 'Добрый день, ' +  date['Преподаватель'] + '! '
         message += 'Спешу вас уведомить, что через неделю, а именно '
         message += normalize_date(date['Дата начала курса'], week) + ', у ' 
