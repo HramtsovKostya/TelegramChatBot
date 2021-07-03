@@ -80,7 +80,7 @@ def handle_text(message):  # sourcery no-metrics
 			first_name = message.from_user.first_name
 			last_name = message.from_user.last_name
 
-			add_user(Subscriber(message.chat.id, last_name + ' ' + first_name))
+			add_user(Subscriber(message.chat.id, first_name + ' ' + last_name))
 		elif message.text == "Данные из таблицы":
 			pass		
 		elif message.text == "Список пользователей":
