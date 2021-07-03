@@ -10,7 +10,7 @@
 
 Список установленных пакетов:
 
-1. pyTelegramBotAPI
+1. telebot
 2. gspread
 3. oauth2client
 4. schedule

@@ -1,15 +1,13 @@
-# -------------------------------------------------------------------------
+# ------------------------------- SCHEDULE --------------------------------
 
 import telebot as tb
 import schedule as sch
 import threading as thr
 import time
 
-from os import path
+# -------------------------------------------------------------------------
 
-# ------------------------------- NOTIFIER --------------------------------
-
-class BotNotifier(object):	
+class BotScheduler(object):	
 	def __init__(self, bot: tb.TeleBot):
 		self.__bot = bot
 		self.__is_working = True

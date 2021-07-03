@@ -2,10 +2,12 @@
 
 import config as cnf
 import telebot as tb
+import pandas as pd
 
-from model.bot_notify import BotNotifier
-from model.sheet_parse import SheetParser
-from model.subscribe import *
+from model.schedule import BotScheduler
+from model.subscribe import Subscriber
+from model.subscribe import Role
+from parse.sheet_parser import SheetParser
 from telebot import types as ts
 
 # -------------------------------------------------------------------------
@@ -78,7 +80,7 @@ def handle_text(message):  # sourcery no-metrics
 			first_name = message.from_user.first_name
 			last_name = message.from_user.last_name
 
-			add_user(User(message.chat.id, last_name + ' ' + first_name))
+			add_user(Subscriber(message.chat.id, last_name + ' ' + first_name))
 		elif message.text == "Данные из таблицы":
 			pass		
 		elif message.text == "Список пользователей":
@@ -99,7 +101,7 @@ def handle_text(message):  # sourcery no-metrics
 
 	elif message.chat.type == 'group':
 		if message.text == "Регистрация":
-			add_user(User(message.chat.id, message.chat.title, role=Role.GROUP))			
+			add_user(Subscriber(message.chat.id, message.chat.title, role=Role.GROUP))			
 		elif message.text == "Данные из таблицы":
 			pass
 		elif message.text == "Список пользователей": 
@@ -109,19 +111,20 @@ def handle_text(message):  # sourcery no-metrics
 
 # -----------------------------------------------------------------------
 
-def add_user(user: User):
-	users = User.load(cnf.USERS_LIST_FILE)
+def add_user(user: Subscriber):
+	users = Subscriber.load(cnf.USERS_LIST_FILE)
 	
 	if user.exists(users):
 		bot.send_message(user.chat_id, 'Такой пользователь уже существует!')
 	else:
 		all_users.append(user)
-		User.save(all_users, cnf.USERS_LIST_FILE)
+		Subscriber.save(all_users, cnf.USERS_LIST_FILE)
 		bot.send_message(user.chat_id, 'Вы успешно зарегистрированы!')
 
 # --------------------------- RUN CHAT-BOT ------------------------------
+
 if __name__ == '__main__':
-	all_users = User.load(cnf.USERS_LIST_FILE)
+	all_users = Subscriber.load(cnf.USERS_LIST_FILE)
 	df_sheet = SheetParser.load(cnf.SPREAD_SHEET_FILE)
 
 	# parser = SheetParser(
@@ -133,13 +136,13 @@ if __name__ == '__main__':
 	# df_sheet = parser.get(cnf.SPREAD_SHEET_ID, head=3)
 	# SheetParser.save(df_sheet, cnf.SPREAD_SHEET_FILE)
 
-	notifier = BotNotifier(bot)
-	notifier.start()
+	scheduler = BotScheduler(bot)
+	scheduler.start()
 	
 	print("Бот успешно запущен!")
 	bot.polling(none_stop=True, timeout=20)
 
 	print("Бот остановлен!")
-	notifier.stop()
+	scheduler.stop()
 
 # -----------------------------------------------------------------------

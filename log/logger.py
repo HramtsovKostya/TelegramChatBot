@@ -1,6 +1,6 @@
 # -------------------------------- LOGGER ---------------------------------
 
-import config as cnf
+import sys
 import logging as log
 
 # -------------------------------------------------------------------------
@@ -42,10 +42,10 @@ class DebugLogger(object):
  # ------------------------------------------------------------------------- 
     
     @staticmethod
-    def get(name: str):
+    def get(name: str, file_name: str):
         fmt = DebugLogger.__formatter()
         
-        file_hdl = DebugLogger.__file_handler(fmt)
+        file_hdl = DebugLogger.__file_handler(fmt, file_name)
         str_hdl = DebugLogger.__str_handler(fmt)
         
         logger = log.getLogger(name)
@@ -63,15 +63,15 @@ class DebugLogger(object):
         )
     
     @staticmethod
-    def __file_handler(fmt: log.Formatter):
-        hdl = log.FileHandler(cnf.LOGGING_FILE)
+    def __file_handler(fmt: log.Formatter, file_name: str):
+        hdl = log.FileHandler(file_name)
         hdl.setLevel(log.DEBUG)
         hdl.setFormatter(fmt)
         return hdl
 
     @staticmethod
-    def __str_handler(fmt: log.Formatter):
-        hdl = log.StreamHandler()
+    def __str_handler(fmt: log.Formatter, stream=sys.stderr):
+        hdl = log.StreamHandler(stream)
         hdl.setLevel(log.WARNING)
         hdl.setFormatter(fmt)
         return hdl

@@ -3,14 +3,14 @@
 import gspread as gs
 import pandas as pd
 
-from oauth2client.service_account import ServiceAccountCredentials as sac
+from oauth2client.service_account import ServiceAccountCredentials
 from os import path
 
 # -------------------------------------------------------------------------
 
 class SheetParser(object):
 	def __init__(self, scope: list[str], key: str):
-		creds = sac.from_json_keyfile_name(key, scope)
+		creds = ServiceAccountCredentials.from_json_keyfile_name(key, scope)
 		self.__client = gs.authorize(creds)
 
 	def get(self, sheet_id: str, index: int = 0, head: int = 1) -> pd.DataFrame:

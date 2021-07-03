@@ -45,7 +45,7 @@ class UserKey(object):
 
 # -------------------------------------------------------------------------
 
-class User(object):
+class Subscriber(object):
     def __init__(self, chat_id: int, name: str,
         role    : str   = Role.TEACHER,
         status  : str   = Status.SUBSCRIBER,
@@ -115,7 +115,7 @@ class User(object):
     
     @staticmethod
     def save(users: list, file_name: str):
-        df_users = User.to_df(users)
+        df_users = Subscriber.to_df(users)
         df_users.to_csv(file_name, sep=';')
 
     @staticmethod
@@ -123,17 +123,16 @@ class User(object):
         users = []
         if path.exists(file_name):
             df_users = pd.read_csv(file_name, delimiter=';')
-            users = [User.from_dict(row) for i, row in df_users.iterrows()] 
+            users = [Subscriber.from_dict(row) for i, row in df_users.iterrows()] 
         return users    
 
-    def exists(self, users: list) -> bool:        
-        df = User.to_df(users)        
+    def exists(self, users: list):        
+        df = Subscriber.to_df(users)        
         id_found = (df[str(UserKey.CHAT_ID)] == self.chat_id).any()
         name_found = (df[UserKey.USER_NAME] == self.user_name).any()
         return id_found or name_found
-       
-    def __str__(self) -> str:
-        data = self.to_dict()
-        return json.dumps(data, indent=4, ensure_ascii=False)
+     
+    def __str__(self):
+        return json.dumps(self.to_dict(), indent=4, ensure_ascii=False)
 
 # -------------------------------------------------------------------------
