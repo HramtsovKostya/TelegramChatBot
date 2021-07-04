@@ -1,11 +1,7 @@
 # --------------------------------- MAIN ----------------------------------
 
-import config as cnf
-from chat_bot import ChatBot
-
-from model.subscribe import Subscriber
-from model.schedule import BotScheduler
-from parse.sheet_parser import SheetParser
+from chat_bot import ChatBot, __bot
+from bot_notifier import BotNotifier
 
 # -------------------------------------------------------------------------
 
@@ -16,16 +12,23 @@ if __name__ == '__main__':
     #     scopes=[cnf.GOOGLE_SHEETS_API, cnf.GOOGLE_DRIVE_API]
     # )
 
-    # df = parser.get(cnf.SPREAD_SHEET_ID)
-    # SheetParser.save(df, cnf.SPREAD_SHEET_FILE)
+    # ? Загрузка данных из гугл-таблицы
+    # data = parser.get(cnf.SPREAD_SHEET_ID)
+    # SheetParser.save(data, cnf.SPREAD_SHEET_FILE)
     
-    # ? Создание расписания
-    # scheduler = BotScheduler()
-    # scheduler.start()
+    # ? Создание чат-бота
+    chat_bot = ChatBot()
+
+    # ? Создание уведомителя
+    notifier = BotNotifier(chat_bot)
     
-    # ? Запуск чат-бота
-    ChatBot().start()
+    # ? Запуск уведомителя
+    notifier.start(__bot)
     
-    # scheduler.stop()
+    # ? Запуск чат-бота    
+    chat_bot.start(__bot)
+    
+    # ? Остановка уведомителя
+    notifier.stop()
     
 # -------------------------------------------------------------------------

@@ -5,12 +5,12 @@ import config as cnf
 from telebot import TeleBot
 from telebot import types as ts
 
-from model.subscribe import Subscriber, Role
-from parse.sheet_parser import SheetParser
+from subscribe import Subscriber, Role
+from sheet_parser import SheetParser
 
 # -------------------------------------------------------------------------
 
-bot = TeleBot(cnf.TOKEN)
+__bot = TeleBot(cnf.TOKEN)
 
 # -------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ class ChatBot(object):
 		ChatBot.__users = Subscriber.load(cnf.USERS_LIST_FILE)
 		ChatBot.__sheet = SheetParser.load(cnf.SPREAD_SHEET_FILE)
      
-	def start(self):
+	def start(self, bot):
 		print("Бот успешно запущен!")  
 		bot.polling(none_stop=True, timeout=20)  
 		print("Бот остановлен!")
@@ -35,7 +35,7 @@ class ChatBot(object):
 # -------------------------------------------------------------------------
 
 def bot_name():
-	return bot.get_me().first_name
+	return __bot.get_me().first_name
 
 
 def user_name(msg: ts.Message):
@@ -52,44 +52,44 @@ def chat_id(msg: ts.Message):
 
 # ------------------------------ HANDLERS ---------------------------------
 
-@bot.message_handler(commands=['start'])
+@__bot.message_handler(commands=['start'])
 def __handle_start(msg: ts.Message):
 	text = 'Добро пожаловать, ' + user_name(msg) + '!\nЯ <b>'
 	text += bot_name() + '</b> -  бот, созданный для рассылки '
 	text += 'уведомлений о предстоящих занятиях.'
-	bot.send_message(chat_id(msg), text, 
+	__bot.send_message(chat_id(msg), text, 
 		reply_markup=__get_keyboard(), parse_mode='html')
 
-@bot.message_handler(commands=['help'])
+@__bot.message_handler(commands=['help'])
 def __handle_help(msg: ts.Message):
 	text = '<b>Список команд</b>:\n/about - Описание чат-бота'
 	text += '\n/authors - Список авторов проекта'
 	text += '\n/help - Список доступных команд'
 	text += '\n/start - Повторный запуск чат-бота'
 
-	bot.send_message(chat_id(msg), text, parse_mode='html')
+	__bot.send_message(chat_id(msg), text, parse_mode='html')
 
 # TODO При вызове команды бросается исключение
-@bot.message_handler(commands=['about'])
+@__bot.message_handler(commands=['about'])
 def __handle_about(msg: ts.Message):
 	text = '<b>О боте:</b>\n<i>' + bot_name()
 	text += '</i> - это тестовый чат-бот, '
 	text += 'который пока ни чего не умеет.\n'
 
-	bot.send_message(chat_id(msg), msg, parse_mode='html')
+	__bot.send_message(chat_id(msg), msg, parse_mode='html')
 
 
-@bot.message_handler(commands=['authors'])
+@__bot.message_handler(commands=['authors'])
 def __handle_authors(msg: ts.Message):
 	text = '<b>Главный разработчик:</b>\n'
 	text += '❤️ Константин Храмцов @KhramtsovKostya\n'
 	text += '\nПо всем вопросам и предложениям'
 	text += '\nпишите мне в личные сообщения.'
 
-	bot.send_message(chat_id(msg), text, parse_mode='html')
+	__bot.send_message(chat_id(msg), text, parse_mode='html')
 
 
-@bot.message_handler(content_types=['text'])
+@__bot.message_handler(content_types=['text'])
 def __handle_text(msg: ts.Message):
 	chat = chat_id(msg)
 	text = 'Я не знаю что ответить 😥'
@@ -107,14 +107,18 @@ def __handle_text(msg: ts.Message):
 
 	elif msg.text == 'Список пользователей':
 		if len(ChatBot.users()) > 0:
-			text = '<b>Список пользователей:</b>\n'			
+			text = '<b>Список пользователей:</b>\n'	
+   		
 			for i in range(len(ChatBot.users())):
+				user = ChatBot.users()[i]
+
 				text += '\t' + str(i+1)  + '. ' 
-				text += ChatBot.users()[i].user_name + '\n'
+				text += user.user_name + ' ('
+				text += user.user_role + ')\n'
 		else:
 			text = 'В списке нет ни одного пользователя.'
 				
-	bot.send_message(chat, text, parse_mode='html')
+	__bot.send_message(chat, text, parse_mode='html')
 
 # -----------------------------------------------------------------------
 
