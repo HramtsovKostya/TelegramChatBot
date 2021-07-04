@@ -1,7 +1,11 @@
 # --------------------------------- MAIN ----------------------------------
 
 import config as cnf
-from chat_bot import bot
+from chat_bot import bot, users, sheet
+
+from model.subscribe import Subscriber
+from model.schedule import BotScheduler
+from parse.sheet_parser import SheetParser
 
 # -------------------------------------------------------------------------
 
@@ -16,6 +20,9 @@ if __name__ == '__main__':
     
     # scheduler = BotScheduler()
     # scheduler.start()
+    
+    users = Subscriber.load(cnf.USERS_LIST_FILE)
+    sheet = SheetParser.load(cnf.SPREAD_SHEET_FILE)
     
     print("Бот успешно запущен!")
     bot.polling(none_stop=True, timeout=20)

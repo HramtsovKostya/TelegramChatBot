@@ -1,19 +1,19 @@
 # ------------------------------- CHAT-BOT --------------------------------
 
 import config as cnf
+import pandas as pd
 
 from telebot import TeleBot
 from telebot import types as ts
 
 from model.subscribe import Subscriber, Role
-from model.schedule import BotScheduler
-from parse.sheet_parser import SheetParser
 
 # -------------------------------------------------------------------------
 
 bot = TeleBot(cnf.TOKEN)
-users = Subscriber.load(cnf.USERS_LIST_FILE)
-sheet = SheetParser.load(cnf.SPREAD_SHEET_FILE)
+
+users = []
+sheet = pd.DataFrame()
 
 # -------------------------------------------------------------------------
 
