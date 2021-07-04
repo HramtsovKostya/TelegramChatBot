@@ -131,6 +131,9 @@ class Subscriber(object):
         id_found = (df[str(UserKey.CHAT_ID)] == self.chat_id).any()
         name_found = (df[UserKey.USER_NAME] == self.user_name).any()
         return id_found or name_found
+    
+    def is_admin(self):
+        return self.user_role == Role.ADMIN 
      
     def __str__(self):
         return json.dumps(self.to_dict(), indent=4, ensure_ascii=False)
