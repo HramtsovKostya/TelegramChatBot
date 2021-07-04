@@ -57,7 +57,7 @@ def chat_id(msg: ts.Message):
 
 # ------------------------------ HANDLERS ---------------------------------
 
-# TODO Почему-то не работает!
+# TODO Возвращаемый пользователь равен None!
 # @__bot.message_handler(content_types=['new_chat_members'])
 # def __handle_new_user(msg: ts.Message):
 #     text = hello_msg(msg, new_user_name(msg))
