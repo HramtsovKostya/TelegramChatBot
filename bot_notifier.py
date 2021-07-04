@@ -36,14 +36,24 @@ class BotNotifier(object):
 			time.sleep(3)
 
 	def __notify(self):
-		for user in self.__users:
+		groups = [u for u in self.__users if u.user_role == Role.GROUP]
+       
+		for user in self.__users:     
 			if user.user_role == Role.TEACHER:
 				data = self.__get_by_name(self.__sheet, user.user_name)
 				is_equals, week = self.__next_week(data['Дата начала курса'])
 
 				if data is not None and is_equals:
-					text = self.__get_notification(week, data)				
+					text = self.__get_notification(week, data)
 					self.__bot.send_message(user.chat_id, text, parse_mode='html')
+
+					for group in groups:
+						group_id = group.chat_id
+						user_id = user.chat_id
+      
+						if self.__bot.get_chat_member(group_id, user_id) is not None:
+							self.__bot.send_message(group_id, text,  parse_mode='html')
+
 		print('Уведомления разосланы!')
 
 	def __get_notification(self, week: int, data: pd.DataFrame):
