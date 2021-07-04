@@ -135,7 +135,7 @@ def __get_keyboard():
 
 def __add_user(user: Subscriber):
 	if user.exists(ChatBot.users()):
-		return 'Такой пользователь уже существует!'
+		return 'Вы уже зарегистрированы!'
 	
 	ChatBot.users().append(user)
 	Subscriber.save(ChatBot.users(), cnf.USERS_LIST_FILE)
