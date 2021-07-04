@@ -1,7 +1,7 @@
 # --------------------------------- MAIN ----------------------------------
 
 import config as cnf
-from chat_bot import bot, users, sheet
+from chat_bot import ChatBot
 
 from model.subscribe import Subscriber
 from model.schedule import BotScheduler
@@ -10,6 +10,7 @@ from parse.sheet_parser import SheetParser
 # -------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    # ? Создание парсера
     # parser = SheetParser(
 	# 	file_name=cnf.CREDENTIALS_FILE, 
     #     scopes=[cnf.GOOGLE_SHEETS_API, cnf.GOOGLE_DRIVE_API]
@@ -18,15 +19,12 @@ if __name__ == '__main__':
     # df = parser.get(cnf.SPREAD_SHEET_ID)
     # SheetParser.save(df, cnf.SPREAD_SHEET_FILE)
     
+    # ? Создание расписания
     # scheduler = BotScheduler()
     # scheduler.start()
     
-    users = Subscriber.load(cnf.USERS_LIST_FILE)
-    sheet = SheetParser.load(cnf.SPREAD_SHEET_FILE)
-    
-    print("Бот успешно запущен!")
-    bot.polling(none_stop=True, timeout=20)
-    print("Бот остановлен!")
+    # ? Запуск чат-бота
+    ChatBot().start()
     
     # scheduler.stop()
     

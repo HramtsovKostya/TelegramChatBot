@@ -1,19 +1,36 @@
 # ------------------------------- CHAT-BOT --------------------------------
 
 import config as cnf
-import pandas as pd
 
 from telebot import TeleBot
 from telebot import types as ts
 
 from model.subscribe import Subscriber, Role
+from parse.sheet_parser import SheetParser
 
 # -------------------------------------------------------------------------
 
 bot = TeleBot(cnf.TOKEN)
 
-users = []
-sheet = pd.DataFrame()
+# -------------------------------------------------------------------------
+
+class ChatBot(object):      
+	def __init__(self):
+		ChatBot.__users = Subscriber.load(cnf.USERS_LIST_FILE)
+		ChatBot.__sheet = SheetParser.load(cnf.SPREAD_SHEET_FILE)
+     
+	def start(self):
+		print("Бот успешно запущен!")  
+		bot.polling(none_stop=True, timeout=20)  
+		print("Бот остановлен!")
+  
+	@staticmethod
+	def users():
+		return ChatBot.__users
+
+	@staticmethod
+	def sheet():
+		return ChatBot.__sheet
 
 # -------------------------------------------------------------------------
 
@@ -26,6 +43,10 @@ def user_name(msg: ts.Message):
 	return user.last_name + ' ' + user.first_name
 
 
+def group_name(msg: ts.Message):
+    return msg.chat.first_name
+
+
 def chat_id(msg: ts.Message):
 	return msg.chat.id
 
@@ -33,14 +54,11 @@ def chat_id(msg: ts.Message):
 
 @bot.message_handler(commands=['start'])
 def __handle_start(msg: ts.Message):
-	text = 'Добро пожаловать,' + user_name(msg)
-	text += '!\nЯ <b>' + bot_name()
-	text += '</b> -  бот, созданный для рассылки '
+	text = 'Добро пожаловать, ' + user_name(msg) + '!\nЯ <b>'
+	text += bot_name() + '</b> -  бот, созданный для рассылки '
 	text += 'уведомлений о предстоящих занятиях.'
-
 	bot.send_message(chat_id(msg), text, 
 		reply_markup=__get_keyboard(), parse_mode='html')
-
 
 @bot.message_handler(commands=['help'])
 def __handle_help(msg: ts.Message):
@@ -51,9 +69,9 @@ def __handle_help(msg: ts.Message):
 
 	bot.send_message(chat_id(msg), text, parse_mode='html')
 
-
+# TODO При вызове команды бросается исключение
 @bot.message_handler(commands=['about'])
-def __handle_about(msg):
+def __handle_about(msg: ts.Message):
 	text = '<b>О боте:</b>\n<i>' + bot_name()
 	text += '</i> - это тестовый чат-бот, '
 	text += 'который пока ни чего не умеет.\n'
@@ -66,7 +84,7 @@ def __handle_authors(msg: ts.Message):
 	text = '<b>Главный разработчик:</b>\n'
 	text += '❤️ Константин Храмцов @KhramtsovKostya\n'
 	text += '\nПо всем вопросам и предложениям'
-	text += ' пишите мне в личные сообщения.'
+	text += '\nпишите мне в личные сообщения.'
 
 	bot.send_message(chat_id(msg), text, parse_mode='html')
 
@@ -88,11 +106,11 @@ def __handle_text(msg: ts.Message):
 		text = __add_user(user)
 
 	elif msg.text == 'Список пользователей':
-		if len(users) > 0:
+		if len(ChatBot.users()) > 0:
 			text = '<b>Список пользователей:</b>\n'			
-			for i in range(len(users)):
-				text += '\t' + str(i+1)  + '.' 
-				text += users[i].user_name + '\n'
+			for i in range(len(ChatBot.users())):
+				text += '\t' + str(i+1)  + '. ' 
+				text += ChatBot.users()[i].user_name + '\n'
 		else:
 			text = 'В списке нет ни одного пользователя.'
 				
@@ -107,15 +125,16 @@ def __get_keyboard():
 	btn_users = ts.KeyboardButton('Список пользователей')
 	btn_sheet = ts.KeyboardButton('Данные из таблицы')
 	
-	kb.add(btn_login, btn_users, btn_sheet)
+	for btn in [btn_login, btn_users, btn_sheet]:
+		kb.add(btn)  
 	return kb
 
 def __add_user(user: Subscriber):
-	if user.exists(users):
+	if user.exists(ChatBot.users()):
 		return 'Такой пользователь уже существует!'
 	
-	users.append(user)
-	Subscriber.save(cnf.USERS_LIST_FILE)
+	ChatBot.users().append(user)
+	Subscriber.save(ChatBot.users(), cnf.USERS_LIST_FILE)
 
 	return 'Вы успешно зарегистрированы!'
 
