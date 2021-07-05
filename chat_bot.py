@@ -34,7 +34,7 @@ class ChatBot(object):
 
 # -------------------------------------------------------------------------
 
-def bot_name():
+def get_bot_name():
 	return __bot.get_me().first_name
 
 
@@ -81,13 +81,11 @@ def __handle_help(msg: ts.Message):
 	__bot.send_message(chat_id(msg), text, parse_mode='html')
 
 
-# TODO При вызове бросается исключение!
-# @__bot.message_handler(commands=['about'])
-# def __handle_about(msg: ts.Message):
-# 	text = '<b>О боте:</b>\n<i>' + bot_name()
-# 	text += '</i> - это тестовый чат-бот, '
-# 	text += 'который пока ни чего не умеет.\n'
-# 	__bot.send_message(chat_id(msg), msg, parse_mode='html')
+@__bot.message_handler(commands=['about'])
+def __handle_about(msg: ts.Message):
+    text = '<b>О боте:</b>\n<i>' + get_bot_name()
+    text += '</i> - это тестовый чат-бот, который пока ни чего не умеет.\n'
+    __bot.send_message(chat_id(msg), text, parse_mode='html')
 
 
 @__bot.message_handler(commands=['authors'])
@@ -123,8 +121,7 @@ def __handle_text(msg: ts.Message):
 				user = ChatBot.users()[i]
 
 				text += '\t' + str(i+1)  + '. ' 
-				text += user.user_name + ' ('
-				text += user.user_role + ')\n'
+				text += user.user_name + ' (' + user.user_role + ')\n'
 		else:
 			text = 'В списке нет ни одного пользователя.'
 				
@@ -134,7 +131,7 @@ def __handle_text(msg: ts.Message):
 
 def hello_msg(msg: ts.Message, user_name: str):
     text = 'Добро пожаловать, ' + user_name + '!\nЯ <b>'
-    text += bot_name() + '</b> -  бот, созданный для рассылки '
+    text += get_bot_name() + '</b> - бот, созданный для рассылки '
     text += 'уведомлений о предстоящих занятиях.'
     return text
 
