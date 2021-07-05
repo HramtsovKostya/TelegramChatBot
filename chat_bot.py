@@ -1,12 +1,11 @@
 # ------------------------------- CHAT-BOT --------------------------------
 
 import config as cnf
+import pandas as pd
 
 from telebot import TeleBot
 from telebot import types as ts
-
 from subscribe import Subscriber, Role
-from sheet_parser import SheetParser
 
 # -------------------------------------------------------------------------
 
@@ -15,15 +14,15 @@ __bot = TeleBot(cnf.TOKEN)
 # -------------------------------------------------------------------------
 
 class ChatBot(object):      
-	def __init__(self):
-		ChatBot.__users = Subscriber.load(cnf.USERS_LIST_FILE)
-		ChatBot.__sheet = SheetParser.load(cnf.SPREAD_SHEET_FILE)
-     
+	def __init__(self, users: list, sheet: pd.DataFrame):
+		ChatBot.__users = users
+		ChatBot.__sheet = sheet
+
 	def start(self, bot):
-		print("Бот успешно запущен!")  
+		print("Чат-бот успешно запущен!\n")  
 		bot.polling(none_stop=True, timeout=20)  
-		print("Бот остановлен!")
-  
+		print("\nЧат-бот успешно остановлен!")
+
 	@staticmethod
 	def users():
 		return ChatBot.__users
@@ -49,7 +48,7 @@ def new_user_name(msg: ts.Message):
  
  
 def group_name(msg: ts.Message):
-    return msg.chat.first_name
+	return msg.chat.first_name
 
 
 def chat_id(msg: ts.Message):
@@ -57,19 +56,13 @@ def chat_id(msg: ts.Message):
 
 # ------------------------------ HANDLERS ---------------------------------
 
-# TODO Возвращаемый пользователь равен None!
-# @__bot.message_handler(content_types=['new_chat_members'])
-# def __handle_new_user(msg: ts.Message):
-#     text = hello_msg(msg, new_user_name(msg))
-#     __bot.send_message(chat_id(msg), text,
-# 		reply_markup=get_keyboard(), parse_mode='html')
-
-
 @__bot.message_handler(commands=['start'])
 def __handle_start(msg: ts.Message):
-	text = hello_msg(msg, user_name(msg))
+	text = 'Добро пожаловать, ' + user_name(msg) + '!\n\nЯ <b>'
+	text += get_bot_name() + '</b> - бот, созданный для рассылки '
+	text += 'уведомлений о предстоящих занятиях.'
 	__bot.send_message(chat_id(msg), text, 
-		reply_markup=get_keyboard(), parse_mode='html')
+		reply_markup=__get_keyboard(), parse_mode='html')
 
 
 @__bot.message_handler(commands=['help'])
@@ -83,10 +76,10 @@ def __handle_help(msg: ts.Message):
 
 @__bot.message_handler(commands=['about'])
 def __handle_about(msg: ts.Message):
-    text = '<b>О боте:</b>\n<i>' + get_bot_name()
-    text += '</i> - это тестовый чат-бот, '
-    text += '\nкоторый пока ни чего не умеет.\n'
-    __bot.send_message(chat_id(msg), text, parse_mode='html')
+	text = '<b>О боте:</b>\n<i>' + get_bot_name()
+	text += '</i> - это тестовый чат-бот, '
+	text += '\nкоторый пока ни чего не умеет.\n'
+	__bot.send_message(chat_id(msg), text, parse_mode='html')
 
 
 @__bot.message_handler(commands=['authors'])
@@ -112,12 +105,12 @@ def __handle_text(msg: ts.Message):
 			user_role = Role.GROUP
 		
 		user = Subscriber(chat, name, role=user_role)
-		text = add_user(user)
+		text = __add_user(user)
 
 	elif msg.text == 'Список пользователей':
 		if len(ChatBot.users()) > 0:
 			text = '<b>Список пользователей:</b>\n'	
-   		
+
 			for i in range(len(ChatBot.users())):
 				user = ChatBot.users()[i]
 
@@ -130,14 +123,7 @@ def __handle_text(msg: ts.Message):
 
 # -----------------------------------------------------------------------
 
-def hello_msg(msg: ts.Message, user_name: str):
-    text = 'Добро пожаловать, ' + user_name + '!\n\nЯ <b>'
-    text += get_bot_name() + '</b> - бот, созданный для рассылки '
-    text += 'уведомлений о предстоящих занятиях.'
-    return text
-
-
-def get_keyboard():
+def __get_keyboard():
 	kb = ts.ReplyKeyboardMarkup(resize_keyboard=True)
 	
 	btn_login = ts.KeyboardButton('Регистрация')
@@ -147,12 +133,15 @@ def get_keyboard():
 		kb.add(btn)  
 	return kb
 
-def add_user(user: Subscriber):
-	if user.exists(ChatBot.users()):
+
+def __add_user(user: Subscriber):
+	users = ChatBot.users()
+	if user.exists(users):
 		return 'Вы уже зарегистрированы!'
 	
-	ChatBot.users().append(user)
-	Subscriber.save(ChatBot.users(), cnf.USERS_LIST_FILE)
+	users.append(user)
+	Subscriber.save(users, cnf.USERS_LIST_FILE)
+	
 	return 'Вы успешно зарегистрированы!'
 
 # -----------------------------------------------------------------------
