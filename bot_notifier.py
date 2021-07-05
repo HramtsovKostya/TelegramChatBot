@@ -1,6 +1,5 @@
 # ------------------------------- SCHEDULE --------------------------------
 
-from subscribe import Subscriber
 import pandas as pd
 import schedule as sch
 import threading as thr
@@ -60,7 +59,8 @@ class BotNotifier(object):
 						if admin_id != user_id:
 							text = self.__get_admin_notification(week, data, admin.user_name)
 							self.__bot.send_message(admin_id, text, parse_mode='html')
-		print('Уведомления разосланы!')
+		
+  		print('Все уведомления разосланы!')
 
 	def __get_user_notification(self, week: int, data: pd.DataFrame):
 		text = self.__get_notification(week, data,  data['Преподаватель'])
