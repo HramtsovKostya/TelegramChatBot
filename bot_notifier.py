@@ -76,18 +76,18 @@ class BotNotifier(object):
 		return text
 
 	def __get_notification(self, week: int, data: pd.DataFrame, user_name: str):
-		lesson, module = self.__get_module_lesson(week)
+		module, lesson = self.__get_module_lesson(week)
 		
-  		text = 'Добрый день, <b>' +  user_name + '</b>!\n'
+		text = 'Добрый день, <b>' +  user_name + '</b>!\n'
 		text += '\nСпешу вас уведомить, что через неделю, \nа именно '
 		text += self.__normalize_date(data['Дата начала курса'], week) + ', у '
 		text += str(data['Поток курса']) + '-го потока\nкурса <i>"'
 		text += data['Название курса']  + '"</i>\nпройдет ' +  str(lesson)
 		text += '-e занятие ' + str(module) + '-го модуля.\n'
 		return text
-  
+
 	def __get_module_lesson(self, week):
-    		module =  week // 4 if week % 4 == 0 else week // 4 + 1
+		module =  week // 4 if week % 4 == 0 else week // 4 + 1
 		lesson = week % 4 if week % 4 > 0 else 4     
 		return (module, lesson)
   
