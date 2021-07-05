@@ -133,7 +133,16 @@ class Subscriber(object):
         return id_found or name_found
     
     def is_admin(self):
-        return self.user_role == Role.ADMIN 
+        return self.user_role == Role.ADMIN
+    
+    def is_group(self):
+        return self.user_role == Role.GROUP
+    
+    def is_subscriber(self):
+        is_teacher = self.user_role == Role.TEACHER
+        is_admin = self.user_role == Role.ADMIN
+        is_active_status = self.user_status == Status.SUBSCRIBER
+        return (is_teacher or is_admin) and is_active_status
      
     def __str__(self):
         return json.dumps(self.to_dict(), indent=4, ensure_ascii=False)

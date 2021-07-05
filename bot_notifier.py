@@ -1,12 +1,12 @@
 # ------------------------------- SCHEDULE --------------------------------
 
+from subscribe import Subscriber
 import pandas as pd
 import schedule as sch
 import threading as thr
 import time
 
 from telebot import TeleBot
-from subscribe import Role
 from datetime import datetime, timedelta
 from chat_bot import ChatBot
 
@@ -36,39 +36,60 @@ class BotNotifier(object):
 			time.sleep(3)
 
 	def __notify(self):
-		groups = [u for u in self.__users if u.user_role == Role.GROUP]
+		groups = [u for u in self.__users if u.is_group()]
+		admins = [u for u in self.__users if u.is_admin()]
        
 		for user in self.__users:     
-			if user.user_role == Role.TEACHER:
+			if user.is_subscriber():
 				data = self.__get_by_name(self.__sheet, user.user_name)
 				is_equals, week = self.__next_week(data['Дата начала курса'])
 
 				if data is not None and is_equals:
-					text = self.__get_notification(week, data)
-					self.__bot.send_message(user.chat_id, text, parse_mode='html')
-
+					user_id = user.chat_id
+					text = self.__get_user_notification(week, data)
+					self.__bot.send_message(user_id, text, parse_mode='html')
+					
 					for group in groups:
-						group_id = group.chat_id
-						user_id = user.chat_id
-      
+						group_id = group.chat_id      
 						if self.__bot.get_chat_member(group_id, user_id) is not None:
 							self.__bot.send_message(group_id, text,  parse_mode='html')
-
+					
+					# TODO необходимо протестировать!
+					for admin in admins:
+						admin_id = admin.chat_id
+						if admin_id != user_id:
+							text = self.__get_admin_notification(week, data, admin.user_name)
+							self.__bot.send_message(admin_id, text, parse_mode='html')
 		print('Уведомления разосланы!')
 
-	def __get_notification(self, week: int, data: pd.DataFrame):
-		lesson = week % 4 if week % 4 > 0 else 4 
-		module =  week // 4 if week % 4 == 0 else week // 4 + 1
+	def __get_user_notification(self, week: int, data: pd.DataFrame):
+		text = self.__get_notification(week, data,  data['Преподаватель'])
+		text += '\nМесто и время проведения: \n' + data['Место проведения']
+		text += ', c ' + data['Время проведения'].replace('-', ' до ')  + '.'
+		return text
 
-		text = 'Добрый день, <b>' +  data['Преподаватель'] + '</b>!\n'
+	def __get_admin_notification(self, week: int, data: pd.DataFrame, admin_name: str):
+		text = self.__get_notification(week, data, admin_name)
+		text += '\nПреподаватель: ' + data['Преподаватель']
+		text += '\nМесто и время проведения: \n' + data['Место проведения']
+		text += ', c ' + data['Время проведения'].replace('-', ' до ')  + '.'
+		return text
+
+	def __get_notification(self, week: int, data: pd.DataFrame, user_name: str):
+		lesson, module = self.__get_module_lesson(week)
+		
+  		text = 'Добрый день, <b>' +  user_name + '</b>!\n'
 		text += '\nСпешу вас уведомить, что через неделю, \nа именно '
 		text += self.__normalize_date(data['Дата начала курса'], week) + ', у '
 		text += str(data['Поток курса']) + '-го потока\nкурса <i>"'
 		text += data['Название курса']  + '"</i>\nпройдет ' +  str(lesson)
 		text += '-e занятие ' + str(module) + '-го модуля.\n'
-		text += '\nМесто и время проведения: \n' + data['Место проведения']
-		text += ', c ' + data['Время проведения'].replace('-', ' до ')  + '.'
 		return text
+  
+	def __get_module_lesson(self, week):
+    		module =  week // 4 if week % 4 == 0 else week // 4 + 1
+		lesson = week % 4 if week % 4 > 0 else 4     
+		return (module, lesson)
   
 	def __get_by_name(self, df: pd.DataFrame, name: str):
 		for i, row in df.iterrows():
