@@ -84,7 +84,8 @@ def __handle_help(msg: ts.Message):
 @__bot.message_handler(commands=['about'])
 def __handle_about(msg: ts.Message):
     text = '<b>О боте:</b>\n<i>' + get_bot_name()
-    text += '</i> - это тестовый чат-бот, который пока ни чего не умеет.\n'
+    text += '</i> - это тестовый чат-бот, '
+    text += '\nкоторый пока ни чего не умеет.\n'
     __bot.send_message(chat_id(msg), text, parse_mode='html')
 
 
@@ -130,7 +131,7 @@ def __handle_text(msg: ts.Message):
 # -----------------------------------------------------------------------
 
 def hello_msg(msg: ts.Message, user_name: str):
-    text = 'Добро пожаловать, ' + user_name + '!\nЯ <b>'
+    text = 'Добро пожаловать, ' + user_name + '!\n\nЯ <b>'
     text += get_bot_name() + '</b> - бот, созданный для рассылки '
     text += 'уведомлений о предстоящих занятиях.'
     return text
