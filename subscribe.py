@@ -126,10 +126,9 @@ class Subscriber(object):
             users = [Subscriber.from_dict(row) for i, row in df_users.iterrows()] 
         return users    
 
-    def exists(self, users: list):        
-        df = Subscriber.to_df(users)        
-        id_found = (df[str(UserKey.CHAT_ID)] == self.chat_id).any()
-        name_found = (df[UserKey.USER_NAME] == self.user_name).any()
+    def exists(self, users: list):  
+        id_found = self.chat_id in [u.chat_id for u in users]
+        name_found = self.user_name in [u.user_name for u in users]
         return id_found or name_found
     
     def is_admin(self):

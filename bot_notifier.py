@@ -27,11 +27,11 @@ class BotNotifier(object):
 		print('Рассылка уведомлений остановлена!')		
 
 	def __schedule(self):
-		sch.every(20).seconds.do(self.__notify)
+		sch.every(10).minutes.do(self.__notify)
 
 		while self.__is_working:
 			sch.run_pending()
-			time.sleep(1)
+			time.sleep(3)
 
 	def __notify(self):
 		subs, groups, admins = self.__get_role_users()
