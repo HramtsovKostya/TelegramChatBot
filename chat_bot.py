@@ -97,16 +97,18 @@ def __handle_authors(msg: ts.Message):
 
 @__bot.message_handler(content_types=['text'])
 def __handle_text(msg: ts.Message):
+	chat_id = msg.chat.id
+	text = 'Я не знаю, что ответить'
+
 	if msg.text == 'Регистрация':
 		text = 'Выберите роль, в качестве которой'
 		text += ' хотите зарегистрироваться'
 
-		__bot.send_message(msg.chat.id, text, 
+		__bot.send_message(chat_id, text, 
 			reply_markup=__select_role_kb(msg.chat.type))
 
 	elif msg.text == 'Статус подписки':
-		text = 'Я не знаю, что ответить'
-		__bot.send_message(msg.chat.id, text, parse_mode='html')	
+		__bot.send_message(chat_id, text, parse_mode='html')	
 
 	elif msg.text == 'Пользователи':
 		if msg.chat.type == 'private':
@@ -126,8 +128,13 @@ def __handle_text(msg: ts.Message):
 					else:
 						text = 'Вам отказано в доступе! Список пользователей'
 						text += ' могут просматривать только администраторы!'
-			__bot.send_message(msg.chat.id, text, parse_mode='html')
-
+			
+			__bot.send_message(chat_id, text, parse_mode='html')
+		
+		elif msg.chat.type == 'group':			
+			__bot.send_message(chat_id, text)
+	else:
+		__bot.send_message(chat_id, text)
 
 @__bot.callback_query_handler(func=lambda call: True)
 def callback_reg_user(call: ts.CallbackQuery):
