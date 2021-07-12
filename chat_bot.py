@@ -5,7 +5,7 @@ import pandas as pd
 
 from telebot import TeleBot
 from telebot import types as ts
-from subscribe import Subscriber, Role
+from subscribe import Status, Subscriber, Role
 
 # -------------------------------------------------------------------------
 
@@ -96,9 +96,8 @@ def __handle_authors(msg: ts.Message):
 
 
 @__bot.message_handler(content_types=['text'])
-def __handle_text(msg: ts.Message):
+def __handle_text(msg: ts.Message):  # sourcery no-metrics
 	chat_id = msg.chat.id
-	text = 'Я не знаю, что ответить'
 
 	if msg.text == 'Регистрация':
 		text = 'Выберите роль, в качестве которой'
@@ -108,9 +107,35 @@ def __handle_text(msg: ts.Message):
 			reply_markup=__select_role_kb(msg.chat.type))
 
 	elif msg.text == 'Статус подписки':
-		__bot.send_message(chat_id, text, parse_mode='html')	
+		if msg.chat.type == 'private':
+			text = 'Вы до сих пор не зарегистрировались!'
+
+			if len(ChatBot.users()) > 0:      
+				user = ChatBot.get_by_id(msg.from_user.id)
+
+				if user is not None:
+					kb = ts.InlineKeyboardMarkup()
+
+					if user.user_status == Status.SUBSCRIBER:
+						text = 'Подписка на рассылку уведомлений активна!'
+						kb.add(__get_btn('Отписаться'))
+					else:
+						text = 'Подписка на рассылку уведомлений не активна!'
+						kb.add(__get_btn('Подписаться'))
+
+					__bot.send_message(chat_id, text, reply_markup=kb)
+				else:
+					__bot.send_message(chat_id, text)	
+			else:
+				__bot.send_message(chat_id, text)
+
+		elif msg.chat.type == 'group':
+			text = 'Я не знаю, что ответить'
+			__bot.send_message(chat_id, text)
 
 	elif msg.text == 'Пользователи':
+		text = 'Я не знаю, что ответить'		
+  
 		if msg.chat.type == 'private':
 			text = 'Вы до сих пор не зарегистрировались!'
 		
@@ -128,12 +153,11 @@ def __handle_text(msg: ts.Message):
 					else:
 						text = 'Вам отказано в доступе! Список пользователей'
 						text += ' могут просматривать только администраторы!'
-			
-			__bot.send_message(chat_id, text, parse_mode='html')
-		
-		elif msg.chat.type == 'group':			
-			__bot.send_message(chat_id, text)
+	
+		__bot.send_message(chat_id, text, parse_mode='html')
+	
 	else:
+		text = 'Я не знаю, что ответить'
 		__bot.send_message(chat_id, text)
 
 @__bot.callback_query_handler(func=lambda call: True)
@@ -165,10 +189,10 @@ def __start_kb(chat_type: str):
 	btn_login = ts.KeyboardButton('Регистрация')
 	kb.add(btn_login)
  
-	btn_sub = ts.KeyboardButton('Статус подписки')
-	kb.add(btn_sub)
-	
 	if chat_type == 'private':
+		btn_sub = ts.KeyboardButton('Статус подписки')
+		kb.add(btn_sub)
+	
 		btn_users = ts.KeyboardButton('Пользователи')
 		kb.add(btn_users)
  
@@ -178,17 +202,17 @@ def __start_kb(chat_type: str):
 def __select_role_kb(chat_type: str):
 	kb = ts.InlineKeyboardMarkup()
  
-	kb.add(__get_role_btn(Role.TEACHER))
-	kb.add(__get_role_btn(Role.ADMIN))
+	kb.add(__get_btn(Role.TEACHER))
+	kb.add(__get_btn(Role.ADMIN))
  
 	if chat_type == 'group':
-		kb.add(__get_role_btn(Role.GROUP))
+		kb.add(__get_btn(Role.GROUP))
  
 	return kb
 
 
-def __get_role_btn(role: str):
-	return ts.InlineKeyboardButton(text=role, callback_data=role)
+def __get_btn(text: str):
+	return ts.InlineKeyboardButton(text=text, callback_data=text)
 
 
 def __add_user(user: Subscriber):

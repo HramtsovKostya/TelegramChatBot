@@ -12,13 +12,13 @@ from bot_notifier import BotNotifier
 if __name__ == '__main__':
     # ? Создание экземпляра парсера
     # parser = SheetParser(
-    # 	file_name=cnf.CREDENTIALS_FILE, 
-    #     scopes=[cnf.GOOGLE_SHEETS_API, cnf.GOOGLE_DRIVE_API]
+    # 	file_name=cfg.CREDENTIALS_FILE, 
+    #     scopes=[cfg.GOOGLE_SHEETS_API, cfg.GOOGLE_DRIVE_API]
     # )
 
     # ? Загрузка данных из гугл-таблицы
-    # data = parser.get(cnf.SPREAD_SHEET_ID)
-    # SheetParser.save(data, cnf.SPREAD_SHEET_FILE)
+    # data = parser.get(cfg.SPREAD_SHEET_ID)
+    # SheetParser.save(data, cfg.SPREAD_SHEET_FILE)
 
     # ? Загрузка данных из файлов
     users = Subscriber.load(cfg.USERS_LIST_FILE)
