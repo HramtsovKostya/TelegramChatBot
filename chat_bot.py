@@ -29,6 +29,13 @@ class ChatBot(object):
 		return ChatBot.__users
 
 	@staticmethod
+	def get_by_id(id: int):
+		for user in ChatBot.users():
+			if user.chat_id == id:
+				return user
+		return None
+
+	@staticmethod
 	def sheet():
 		return ChatBot.__sheet
 
@@ -57,8 +64,9 @@ def __handle_start(msg: ts.Message):
 	text = 'Добро пожаловать, ' + user_name(msg) + '!\n\nЯ <b>'
 	text += get_bot_name() + '</b> - бот, созданный для рассылки '
 	text += 'уведомлений о предстоящих занятиях.'
+ 
 	__bot.send_message(msg.chat.id, text, 
-		reply_markup=__start_kb(), parse_mode='html')
+		reply_markup=__start_kb(msg.chat.type), parse_mode='html')
 
 
 @__bot.message_handler(commands=['help'])
@@ -100,19 +108,25 @@ def __handle_text(msg: ts.Message):
 		text = 'Я не знаю, что ответить'
 		__bot.send_message(msg.chat.id, text, parse_mode='html')	
 
-	elif msg.text == 'Пользователи':	
-		if len(ChatBot.users()) > 0:
-			text = '<b>Список пользователей:</b>\n'	
+	elif msg.text == 'Пользователи':
+		if msg.chat.type == 'private':
+			text = 'Вы до сих пор не зарегистрировались!'
+		
+			if len(ChatBot.users()) > 0:
+				user = ChatBot.get_by_id(msg.from_user.id)
 
-			for i in range(len(ChatBot.users())):
-				user = ChatBot.users()[i]
+				if user is not None:  
+					if user.is_admin():
+						text = '<b>Список пользователей:</b>\n'	
 
-				text += '\t' + str(i+1)  + '. ' 
-				text += user.user_name + ' (' + user.user_role + ')\n'
-		else:
-			text = 'В списке нет ни одного пользователя.'
-				
-		__bot.send_message(msg.chat.id, text, parse_mode='html')
+						for i in range(len(ChatBot.users())):
+							user = ChatBot.users()[i]
+							text += '\t' + str(i+1)  + '. ' 
+							text += user.user_name + ' (' + user.user_role + ')\n'
+					else:
+						text = 'Вам отказано в доступе! Список пользователей'
+						text += ' могут просматривать только администраторы!'
+			__bot.send_message(msg.chat.id, text, parse_mode='html')
 
 
 @__bot.callback_query_handler(func=lambda call: True)
@@ -138,7 +152,7 @@ def callback_reg_user(call: ts.CallbackQuery):
 
 # -----------------------------------------------------------------------
 
-def __start_kb():
+def __start_kb(chat_type: str):
 	kb = ts.ReplyKeyboardMarkup(resize_keyboard=True)
 	
 	btn_login = ts.KeyboardButton('Регистрация')
@@ -146,9 +160,10 @@ def __start_kb():
  
 	btn_sub = ts.KeyboardButton('Статус подписки')
 	kb.add(btn_sub)
- 
-	btn_users = ts.KeyboardButton('Пользователи')
-	kb.add(btn_users)
+	
+	if chat_type == 'private':
+		btn_users = ts.KeyboardButton('Пользователи')
+		kb.add(btn_users)
  
 	return kb
 
@@ -166,8 +181,7 @@ def __select_role_kb(chat_type: str):
 
 
 def __get_role_btn(role: str):
-	return ts.InlineKeyboardButton(
-		text=role, callback_data=role)
+	return ts.InlineKeyboardButton(text=role, callback_data=role)
 
 
 def __add_user(user: Subscriber):

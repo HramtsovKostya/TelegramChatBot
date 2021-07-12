@@ -20,11 +20,11 @@ class BotNotifier(object):
 
 	def start(self):
 		Thread(target=self.__schedule).start()
-		print('Рассылка уведомлений запущена!')
+		print('\nРассылка уведомлений запущена!')
 
 	def stop(self):
 		self.__is_working = False
-		print('Рассылка уведомлений остановлена!')		
+		print('Рассылка уведомлений остановлена!\n')		
 
 	def __schedule(self):
 		sch.every(10).minutes.do(self.__notify)
