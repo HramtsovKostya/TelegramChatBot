@@ -58,14 +58,14 @@ def user_name(msg: ts.Message):
 	user = msg.from_user
 	return user.last_name + ' ' + user.first_name
 
-# ------------------------------ HANDLERS ---------------------------------
+# -------------------------- MESSAGE-HANDLERS -----------------------------
 
 @__bot.message_handler(commands=['start'])
 def __handle_start(msg: ts.Message):
 	text = 'Добро пожаловать, ' + user_name(msg) + '!\n\nЯ <b>'
 	text += get_bot_name() + '</b> - бот, созданный для рассылки '
 	text += 'уведомлений о предстоящих занятиях.'
- 
+
 	__bot.send_message(msg.chat.id, text, 
 		reply_markup=__start_kb(msg.chat.type), parse_mode='html')
 
@@ -136,8 +136,7 @@ def __handle_text(msg: ts.Message):  # sourcery no-metrics
 				__bot.send_message(chat_id, text)
 
 		elif msg.chat.type == 'group':
-			text = 'Я не знаю, что ответить'
-			__bot.send_message(chat_id, text)
+			__bot.send_message(chat_id, 'Я не знаю, что ответить')
 
 	elif msg.text == 'Пользователи':
 		text = 'Я не знаю, что ответить'		
@@ -162,10 +161,19 @@ def __handle_text(msg: ts.Message):  # sourcery no-metrics
 	
 		__bot.send_message(chat_id, text, parse_mode='html')
 	
-	else:
-		text = 'Я не знаю, что ответить'
-		__bot.send_message(chat_id, text)
+	elif msg.text == 'Ссылка на чат-бота':
+		if msg.chat.type == 'group':
+			kb = ts.InlineKeyboardMarkup()
+			kb.add(ts.InlineKeyboardButton(get_bot_name(), url=cfg.BOT_URL))
 
+			text = 'Вот, получите ссылку на меня'
+			__bot.send_message(chat_id, text, reply_markup=kb)
+		elif msg.chat.type == 'private':
+			__bot.send_message(chat_id, 'Я не знаю, что ответить')
+	else:
+		__bot.send_message(chat_id, 'Я не знаю, что ответить')
+
+# -------------------------- CALLBACK-HANDLERS -----------------------------
 
 @__bot.callback_query_handler(
 	func=lambda call: call.data in Role.roles())
@@ -211,7 +219,8 @@ def __subscribe_callback(call: ts.CallbackQuery):
  
 	__bot.edit_message_text(text, chat_id=chat.id,
 		message_id=call.message.id, parse_mode='html')
- 
+
+
 @__bot.callback_query_handler(
 	func=lambda call: call.data == 'Меня всё устраивает')
 def __cancel_callback(call: ts.CallbackQuery):
@@ -243,6 +252,10 @@ def __start_kb(chat_type: str):
 	
 		btn_users = ts.KeyboardButton('Пользователи')
 		kb.add(btn_users)
+
+	if chat_type == 'group':
+		btn_bot = ts.KeyboardButton('Ссылка на чат-бота')
+		kb.add(btn_bot)
  
 	return kb
 
