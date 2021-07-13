@@ -5,7 +5,8 @@ import pandas as pd
 
 from telebot import TeleBot
 from telebot import types as ts
-from subscribe import Status, Subscriber, Role
+from subscribe import Subscriber
+from subscribe import Role, Status
 
 # -------------------------------------------------------------------------
 
@@ -29,7 +30,7 @@ class ChatBot(object):
 		return ChatBot.__users
 
 	@staticmethod
-	def get_by_id(id: int):
+	def get_by_id(id: int) -> Subscriber:
 		for user in ChatBot.users():
 			if user.chat_id == id:
 				return user
@@ -115,15 +116,20 @@ def __handle_text(msg: ts.Message):  # sourcery no-metrics
 
 				if user is not None:
 					kb = ts.InlineKeyboardMarkup()
+					kb.add(__get_btn('Меня всё устраивает'))
 
 					if user.user_status == Status.SUBSCRIBER:
-						text = 'Подписка на рассылку уведомлений активна!'
-						kb.add(__get_btn('Отписаться'))
+						text = 'Подписка на рассылку уведомлений <i>активна</i>!'
+						btn_sub = ts.InlineKeyboardButton(
+							text='Отписаться', callback_data=Status.GUEST)
 					else:
-						text = 'Подписка на рассылку уведомлений не активна!'
-						kb.add(__get_btn('Подписаться'))
-
-					__bot.send_message(chat_id, text, reply_markup=kb)
+						text = 'Подписка на рассылку уведомлений <i>не активна</i>!'
+						btn_sub = ts.InlineKeyboardButton(
+							text='Подписаться', callback_data=Status.SUBSCRIBER)
+					kb.add(btn_sub)
+	
+					__bot.send_message(chat_id, text, 
+						reply_markup=kb, parse_mode='html')
 				else:
 					__bot.send_message(chat_id, text)	
 			else:
@@ -160,8 +166,10 @@ def __handle_text(msg: ts.Message):  # sourcery no-metrics
 		text = 'Я не знаю, что ответить'
 		__bot.send_message(chat_id, text)
 
-@__bot.callback_query_handler(func=lambda call: True)
-def callback_reg_user(call: ts.CallbackQuery):
+
+@__bot.callback_query_handler(
+	func=lambda call: call.data in Role.roles())
+def __register_callback(call: ts.CallbackQuery):
 	chat = call.message.chat
 	user_role = call.data
  
@@ -177,6 +185,46 @@ def callback_reg_user(call: ts.CallbackQuery):
 
 	user = Subscriber(user_id, name, role=user_role)
 	text = __add_user(user)
+ 
+	__bot.edit_message_text(text, chat_id=chat.id,
+		message_id=call.message.id, parse_mode='html')
+
+
+@__bot.callback_query_handler(
+	func=lambda call: call.data in Status.statuses())
+def __subscribe_callback(call: ts.CallbackQuery):
+	chat = call.message.chat
+	status = call.data
+
+	__bot.edit_message_reply_markup(chat.id, 
+		message_id=call.message.id, reply_markup='')
+ 
+	user = ChatBot.get_by_id(call.from_user.id)
+	user.user_status = status
+ 
+	text = 'Вы успешно <i>подписались</i> на рассылку уведомлений!'
+	
+	if status == Status.GUEST:
+		text = 'Вы успешно <i>отписались</i> от рассылки уведомлений!'
+ 
+	Subscriber.save(ChatBot.users(), cfg.USERS_LIST_FILE)
+ 
+	__bot.edit_message_text(text, chat_id=chat.id,
+		message_id=call.message.id, parse_mode='html')
+ 
+@__bot.callback_query_handler(
+	func=lambda call: call.data == 'Меня всё устраивает')
+def __cancel_callback(call: ts.CallbackQuery):
+	chat = call.message.chat
+
+	__bot.edit_message_reply_markup(chat.id, 
+		message_id=call.message.id, reply_markup='')
+	
+	user = ChatBot.get_by_id(call.from_user.id)
+	text = 'Вы по-прежнему <i>подписаны</i> на рассылку уведомлений'
+ 
+	if user.user_status == Status.GUEST:
+		text = 'Вы по-прежнему <i>не подписаны</i> на рассылку уведомлений'
  
 	__bot.edit_message_text(text, chat_id=chat.id,
 		message_id=call.message.id, parse_mode='html')
