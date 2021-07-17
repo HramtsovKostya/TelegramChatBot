@@ -28,7 +28,7 @@ class BotNotifier(object):
 		print('Рассылка уведомлений остановлена!\n')		
 
 	def __schedule(self):
-		sch.every(1).minutes.do(self.__notify)
+		sch.every().minute.do(self.__notify)
 		# sch.every().day.at('09:00').do(self.__notify)
 
 		while self.__is_working:
@@ -133,7 +133,7 @@ class BotNotifier(object):
 	def __get_mc_notification(self, data: pd.DataFrame, user_name: str):
 		text = 'Добрый день, <b>' +  user_name + '</b>!\n'
 		text += '\nСпешу вас уведомить, что через неделю, а именно '
-		text += self.__normalize_date(data['Мастер-класс'], 2) + ', у '
+		text += self.__normalize_date(data['Мастер-класс'], 1) + ', у '
 		text += str(data['Поток курса']) + '-го потока пройдет мастер-класс '
 		text += 'по курсу <i>"' + data['Название курса']  + '"</i>.\n'
 		return text
