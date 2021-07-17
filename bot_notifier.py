@@ -27,13 +27,14 @@ class BotNotifier(object):
 		print('Рассылка уведомлений остановлена!\n')		
 
 	def __schedule(self):
-		sch.every(10).minutes.do(self.__notify)
+		# sch.every(10).minutes.do(self.__notify)
+		sch.every().day.at('21:34').do(self.__notify)
 
 		while self.__is_working:
 			sch.run_pending()
 			time.sleep(3)
 
-	def __notify(self):
+	def __notify(self):  # sourcery no-metrics
 		subs, groups, admins = self.__get_role_users()
 
 		for user in subs:
@@ -60,8 +61,27 @@ class BotNotifier(object):
 						if admin_id != user_id:
 							text = self.__get_admin_notification(week, data, admin.user_name)
 							self.__bot.send_message(admin_id, text, parse_mode='html')
-					
-					print('Пользователь ' + user.user_name + ' уведомлен')
+				
+				if self.__is_master_class(data['Мастер-класс']):
+					user_id = user.chat_id
+					text = self.__get_user_mc_notification(data)
+					self.__bot.send_message(user_id, text, parse_mode='html')
+	
+					for group in groups:
+						group_id = group.chat_id
+						try:
+							self.__bot.get_chat_member(group_id, user_id)
+							self.__bot.send_message(group_id, text, parse_mode='html')
+						except ApiTelegramException:
+							continue
+
+					for admin in admins:
+						admin_id = admin.chat_id
+						if admin_id != user_id:
+							text = self.__get_admin_mc_notification(data, admin.user_name)
+							self.__bot.send_message(admin_id, text, parse_mode='html')
+ 
+				print('Пользователь ' + user.user_name + ' уведомлен')
 		print('Все уведомления разосланы!') 
 
 # -------------------------------------------------------------------------
@@ -70,13 +90,22 @@ class BotNotifier(object):
 		text = self.__get_notification(week, data,  data['Преподаватель'])
 		return self.__get_place_and_time(text, data)
 
+	def __get_user_mc_notification(self, data: pd.DataFrame):
+		text = self.__get_mc_notification(data, data['Преподаватель'])
+		return self.__get_place_and_time(text, data)
+
 	def __get_admin_notification(self, week: int, data: pd.DataFrame, admin_name: str):
 		text = self.__get_notification(week, data, admin_name)
 		text += '\nПреподаватель: ' + data['Преподаватель']
 		return self.__get_place_and_time(text, data)
 
+	def __get_admin_mc_notification(self, data: pd.DataFrame, admin_name: str):
+		text = self.__get_mc_notification(data, admin_name)
+		text += '\nПреподаватель: ' + data['Преподаватель']
+		return self.__get_place_and_time(text, data)
+
 	def __get_place_and_time(self, text, data):
-		text += '\nМесто и время проведения: \n' + data['Место проведения']
+		text += '\nМесто и время проведения: ' + data['Место проведения']
 		text += ', c ' + data['Время проведения'].replace('-', ' до ') + '.'
 		return text
 
@@ -89,6 +118,14 @@ class BotNotifier(object):
 		text += str(data['Поток курса']) + '-го потока курса <i>"'
 		text += data['Название курса']  + '"</i> пройдет ' +  str(lesson)
 		text += '-e занятие ' + str(module) + '-го модуля.\n'
+		return text
+
+	def __get_mc_notification(self, data: pd.DataFrame, user_name: str):
+		text = 'Добрый день, <b>' +  user_name + '</b>!\n'
+		text += '\nСпешу вас уведомить, что через неделю, а именно '
+		text += self.__normalize_date(data['Мастер-класс'], 2) + ', у '
+		text += str(data['Поток курса']) + '-го потока пройдет мастер-класс '
+		text += 'по курсу <i>"' + data['Название курса']  + '"</i>.\n'
 		return text
 
 	def __get_module_lesson(self, week):
@@ -111,6 +148,11 @@ class BotNotifier(object):
 				return week + 1
 		return None
 
+	def __is_master_class(self, date: str):
+		dt = datetime.strptime(date, '%Y-%m-%d')
+		dt_next = datetime.now() + timedelta(weeks=1)
+		return dt.date() == dt_next.date()
+  
 	def __normalize_date(self, date: str, number: int):
 		dt = datetime.strptime(date, '%Y-%m-%d') + timedelta(weeks=number-1)
 		return dt.strftime('%d.%m.%Y') + 'г.'
