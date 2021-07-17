@@ -183,20 +183,23 @@ def __register_callback(call: ts.CallbackQuery):
  
 	__bot.edit_message_reply_markup(chat.id, 
 		message_id=call.message.id, reply_markup='')
- 
-	name = user_name(call)
-	user_id = call.from_user.id
 
 	if user_role == Role.GROUP:
-		name = chat.title
-		user_id = chat.id
-
-	user = Subscriber(user_id, name, role=user_role)
-	text = __add_user(user)
+		group = Subscriber.create_group(chat.id, chat.title)
+		text = __add_group(group)
  
-	__bot.edit_message_text(text, chat_id=chat.id,
-		message_id=call.message.id, parse_mode='html')
-
+		__bot.edit_message_text(text, chat_id=chat.id,
+			message_id=call.message.id, parse_mode='html')
+	else:
+		text = f'Отлично, Вы выбрали роль <b>{user_role}</b>'
+     
+		__bot.edit_message_text(text, chat_id=chat.id,
+			message_id=call.message.id, parse_mode='html')
+	
+		text = 'Введите, пожалуйста, фамилию и имя'
+		msg = __bot.send_message(chat.id, text)
+		
+		__bot.register_next_step_handler(msg, __get_fio, user_role)
 
 @__bot.callback_query_handler(
 	func=lambda call: call.data in Status.statuses())
@@ -240,6 +243,15 @@ def __cancel_callback(call: ts.CallbackQuery):
 
 # -----------------------------------------------------------------------
 
+def __get_fio(msg: ts.Message, user_role: str):
+	user_id = msg.from_user.id
+	user_name = msg.text
+
+	user = Subscriber(user_id, user_name, user_role)
+	text = __add_user(user)
+
+	__bot.send_message(msg.chat.id, text, parse_mode='html')
+
 def __start_kb(chat_type: str):
 	kb = ts.ReplyKeyboardMarkup(resize_keyboard=True)
 	
@@ -276,21 +288,46 @@ def __get_btn(text: str):
 	return ts.InlineKeyboardButton(text=text, callback_data=text)
 
 
+def __add_group(group: Subscriber):
+	users = ChatBot.users()
+	name = group.user_name
+ 
+	text = f'Группа <b>{name}</b> успешно зарегистрирована!'
+ 
+	if group.id_exists(users):		
+		text = text.replace('успешно', 'уже')		
+	else:
+		users.append(group)
+		Subscriber.save(users, cfg.USERS_LIST_FILE)
+	
+	return text
+
+
 def __add_user(user: Subscriber):
 	users = ChatBot.users()
 	name = user.user_name
- 
-	text = f'Вы успешно зарегистрированы как <b>{name}</b>!'
- 
-	if user.is_group():
-		text = f'Группа <b>{name}</b> успешно зарегистрирована!'
- 
-	if user.exists(users):		
-		text = text.replace('успешно', 'уже')		
+
+	if user.id_exists(users):
+		name = ChatBot.get_by_id(user.chat_id).user_name
+		text = f'Вы уже зарегистрированы как <b>{name}</b>!'
+	elif user.name_exists(users):	
+		text = f'Пользователь <b>{name}</b> уже зарегистрирован!'
 	else:
-		users.append(user)
-		Subscriber.save(users, cfg.USERS_LIST_FILE)
-	
+		user_names = []		
+		text = f'Вы успешно зарегистрированы как <b>{name}</b>!'
+  
+		for user_name in ChatBot.sheet()['Преподаватель']:
+			if (isinstance(user_name, str) 
+				and not user_name.isspace()
+				and user_name not in user_names):
+					user_names.append(user_name.lower())
+
+		if name.lower() in user_names:
+			users.append(user)
+			Subscriber.save(users, cfg.USERS_LIST_FILE)
+		else:
+			text = f'Пользователь <b>{name}</b> не найден!'
+
 	return text
 
 # -----------------------------------------------------------------------

@@ -68,25 +68,26 @@ class BotNotifier(object):
 
 	def __get_user_notification(self, week: int, data: pd.DataFrame):
 		text = self.__get_notification(week, data,  data['Преподаватель'])
-		text += '\nМесто и время проведения: \n' + data['Место проведения']
-		text += ', c ' + data['Время проведения'].replace('-', ' до ')  + '.'
-		return text
+		return self.__get_place_and_time(text, data)
 
 	def __get_admin_notification(self, week: int, data: pd.DataFrame, admin_name: str):
 		text = self.__get_notification(week, data, admin_name)
 		text += '\nПреподаватель: ' + data['Преподаватель']
+		return self.__get_place_and_time(text, data)
+
+	def __get_place_and_time(self, text, data):
 		text += '\nМесто и время проведения: \n' + data['Место проведения']
-		text += ', c ' + data['Время проведения'].replace('-', ' до ')  + '.'
+		text += ', c ' + data['Время проведения'].replace('-', ' до ') + '.'
 		return text
 
 	def __get_notification(self, week: int, data: pd.DataFrame, user_name: str):
 		module, lesson = self.__get_module_lesson(week)
 		
 		text = 'Добрый день, <b>' +  user_name + '</b>!\n'
-		text += '\nСпешу вас уведомить, что через неделю, \nа именно '
+		text += '\nСпешу вас уведомить, что через неделю, а именно '
 		text += self.__normalize_date(data['Дата начала курса'], week) + ', у '
-		text += str(data['Поток курса']) + '-го потока\nкурса <i>"'
-		text += data['Название курса']  + '"</i>\nпройдет ' +  str(lesson)
+		text += str(data['Поток курса']) + '-го потока курса <i>"'
+		text += data['Название курса']  + '"</i> пройдет ' +  str(lesson)
 		text += '-e занятие ' + str(module) + '-го модуля.\n'
 		return text
 

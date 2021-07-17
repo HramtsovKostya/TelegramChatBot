@@ -56,6 +56,10 @@ class Subscriber(object):
         self.__user_role    = role
         self.__user_status  = status
         self.__reg_date     = date
+        
+    @classmethod
+    def create_group(self, id: int, name: str):
+        return Subscriber(id, name, Role.GROUP)
    
     @property
     def chat_id(self) -> int:
@@ -124,12 +128,13 @@ class Subscriber(object):
         if path.exists(file_name):
             df_users = pd.read_csv(file_name, delimiter=';')
             users = [Subscriber.from_dict(row) for i, row in df_users.iterrows()] 
-        return users    
+        return users
 
-    def exists(self, users: list):  
-        id_found = self.chat_id in [u.chat_id for u in users]
-        name_found = self.user_name in [u.user_name for u in users]
-        return id_found or name_found
+    def id_exists(self, users: list):  
+        return self.chat_id in [u.chat_id for u in users]
+    
+    def name_exists(self, users: list):  
+        return self.user_name in [u.user_name for u in users]
     
     def is_admin(self):
         return self.user_role == Role.ADMIN
