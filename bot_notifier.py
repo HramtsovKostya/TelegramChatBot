@@ -28,7 +28,7 @@ class BotNotifier(object):
 		print('Рассылка уведомлений остановлена!\n')		
 
 	def __schedule(self):
-		sch.every().minute.do(self.__notify)
+		sch.every(10).seconds.do(self.__notify)
 		# sch.every().day.at('09:00').do(self.__notify)
 
 		while self.__is_working:
@@ -49,8 +49,8 @@ class BotNotifier(object):
 		for user in self.__get_subs():
 			data = self.__get_by_name(ChatBot.sheet(), user.user_name)
 
-			if data is not None:
-				self.__notify_about_lessons(user, data)	
+			if data is not None and data['Стадия курса'] == 'Идет':
+				self.__notify_about_lessons(user, data)
 				self.__notify_about_master_class(user, data) 
 				print('Пользователь ' + user.user_name + ' уведомлен')
 
@@ -96,20 +96,20 @@ class BotNotifier(object):
 
 # -------------------------------------------------------------------------
 
-	def __get_user_notification(self, week: int, data: pd.DataFrame):
+	def __get_user_notification(self, week: int, data):
 		text = self.__get_notification(week, data,  data['Преподаватель'])
 		return self.__get_place_and_time(text, data)
 
-	def __get_user_mc_notification(self, data: pd.DataFrame):
+	def __get_user_mc_notification(self, data):
 		text = self.__get_mc_notification(data, data['Преподаватель'])
 		return self.__get_place_and_time(text, data)
 
-	def __get_admin_notification(self, week: int, data: pd.DataFrame, admin_name: str):
+	def __get_admin_notification(self, week: int, data, admin_name: str):
 		text = self.__get_notification(week, data, admin_name)
 		text += '\nПреподаватель: ' + data['Преподаватель']
 		return self.__get_place_and_time(text, data)
 
-	def __get_admin_mc_notification(self, data: pd.DataFrame, admin_name: str):
+	def __get_admin_mc_notification(self, data, admin_name: str):
 		text = self.__get_mc_notification(data, admin_name)
 		text += '\nПреподаватель: ' + data['Преподаватель']
 		return self.__get_place_and_time(text, data)
@@ -119,7 +119,7 @@ class BotNotifier(object):
 		text += ', c ' + data['Время проведения'].replace('-', ' до ') + '.'
 		return text
 
-	def __get_notification(self, week: int, data: pd.DataFrame, user_name: str):
+	def __get_notification(self, week: int, data, user_name: str):
 		module, lesson = self.__get_module_lesson(week)
 		
 		text = 'Добрый день, <b>' +  user_name + '</b>!\n'
@@ -130,7 +130,7 @@ class BotNotifier(object):
 		text += '-e занятие ' + str(module) + '-го модуля.\n'
 		return text
 
-	def __get_mc_notification(self, data: pd.DataFrame, user_name: str):
+	def __get_mc_notification(self, data, user_name: str):
 		text = 'Добрый день, <b>' +  user_name + '</b>!\n'
 		text += '\nСпешу вас уведомить, что через неделю, а именно '
 		text += self.__normalize_date(data['Мастер-класс'], 1) + ', у '
@@ -150,22 +150,39 @@ class BotNotifier(object):
 		return None
 
 	def __next_week(self, date: str):
-		for week in range(12):
-			dt = datetime.strptime(date, '%Y-%m-%d') + timedelta(weeks=week)
-			dt_next = datetime.now() + timedelta(weeks=1)
+		if isinstance(date, str) and not date.isspace():
+			dt_start = datetime.strptime(date, '%Y-%m-%d')
+			dt_now = datetime.now()
 			
-			if dt.date() == dt_next.date():
-				return week + 1
+			if dt_start.date() <= dt_now.date():
+				return None
+
+			for week in range(12):
+				dt = dt_start + timedelta(weeks=week)
+				dt_next = dt_now + timedelta(weeks=1)
+				
+				if dt.date() == dt_next.date():
+					return week + 1
 		return None
 
 	def __is_master_class(self, date: str):
-		dt = datetime.strptime(date, '%Y-%m-%d')
-		dt_next = datetime.now() + timedelta(weeks=1)
-		return dt.date() == dt_next.date()
+		if isinstance(date, str) and not date.isspace():
+			dt_mc = datetime.strptime(date, '%Y-%m-%d')
+			dt_now = datetime.now()
+			
+			if dt_mc.date() <= dt_now.date():
+				return None
+
+			dt_next = dt_now + timedelta(weeks=1)
+			return dt_mc.date() == dt_next.date()
+		return False
   
 	def __normalize_date(self, date: str, number: int):
-		dt = datetime.strptime(date, '%Y-%m-%d') + timedelta(weeks=number-1)
-		return dt.strftime('%d.%m.%Y') + 'г.'
+		if not date.isspace():
+			dt = datetime.strptime(date, '%Y-%m-%d')
+			dt += timedelta(weeks=number-1)
+			return dt.strftime('%d.%m.%Y') + 'г.'
+		return None
 
 	def __get_subs(self):
 		return [u for u in ChatBot.users() if u.is_subscriber()]
