@@ -11,6 +11,7 @@ from subscribe import Role, Status
 # -------------------------------------------------------------------------
 
 __bot = TeleBot(cfg.TOKEN)
+__bot.set_webhook(cfg.WEBHOOKURL)
 
 # -------------------------------------------------------------------------
 
@@ -21,8 +22,7 @@ class ChatBot(object):
 		ChatBot.__role = ''
 
 	def start(self, bot):
-		print("Чат-бот успешно запущен!\n")  
-		bot.polling(none_stop=True, timeout=20)  
+		print("Чат-бот успешно запущен!\n")   
 		print("\nЧат-бот успешно остановлен!")
 
 	@staticmethod
