@@ -2,9 +2,9 @@
 
 import config as cfg
 
-from sheet_parser import SheetParser
 from subscribe import Subscriber
 from chat_bot import ChatBot, __bot
+from sheet_parser import SheetParser
 from bot_notifier import BotNotifier
 
 # -------------------------------------------------------------------------
