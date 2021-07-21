@@ -1,3 +1,5 @@
+# ------------------------------- FLASK-APP --------------------------------
+
 import config as cfg
 
 from flask import Flask
@@ -9,6 +11,8 @@ from subscribe import Subscriber
 from sheet_parser import SheetParser
 from bot_notifier import BotNotifier
 
+# -------------------------------------------------------------------------
+
 app = Flask(__name__)
 
 
@@ -17,9 +21,10 @@ def index():
     json_string = request.get_data().decode('utf-8')
     update = ts.Update.de_json(json_string)
     __bot.process_new_updates([update])
-    print(type(ts.Update.de_json(request.get_json()).message))
+    # print(type(ts.Update.de_json(request.get_json()).message))
     return ''
 
+# -------------------------------------------------------------------------
 
 if __name__ == "__main__":
 
@@ -44,3 +49,5 @@ if __name__ == "__main__":
 
     # ? Остановка уведомителя
     notifier.stop()
+
+# -------------------------------------------------------------------------
