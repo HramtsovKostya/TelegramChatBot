@@ -28,7 +28,7 @@ class BotNotifier(object):
 		print('Рассылка уведомлений остановлена!\n')		
 
 	def __schedule(self):
-		sch.every(10).seconds.do(self.__notify)
+		sch.every(5).minutes.do(self.__notify)
 		# sch.every().day.at('09:00').do(self.__notify)
 
 		while self.__is_working:
@@ -154,9 +154,6 @@ class BotNotifier(object):
 			dt_start = datetime.strptime(date, '%Y-%m-%d')
 			dt_now = datetime.now()
 			
-			if dt_start.date() <= dt_now.date():
-				return None
-
 			for week in range(12):
 				dt = dt_start + timedelta(weeks=week)
 				dt_next = dt_now + timedelta(weeks=1)
