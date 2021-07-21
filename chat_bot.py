@@ -11,7 +11,7 @@ from subscribe import Role, Status
 # -------------------------------------------------------------------------
 
 __bot = TeleBot(cfg.TOKEN)
-__bot.set_webhook(cfg.WEBHOOKURL)
+__bot.set_webhook(cfg.WEBHOOK_URL)
 
 # -------------------------------------------------------------------------
 
