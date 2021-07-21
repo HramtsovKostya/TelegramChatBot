@@ -14,4 +14,4 @@
 2. gspread - для работы с Google Sheets и Google Drive API
 3. oauth2client - для авторизации сервисного аккаунта
 4. schedule - для использования планировщика Cron
-5. flask - для использования вебхуков (webhook) в чат-боте
+5. Flask - для использования вебхуков (webhook) в чат-боте
