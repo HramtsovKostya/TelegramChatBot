@@ -11,6 +11,7 @@ from subscribe import Role, Status
 # -------------------------------------------------------------------------
 
 __bot = TeleBot(cfg.TOKEN)
+__bot.delete_webhook()
 # __bot.set_webhook(cfg.WEBHOOK_URL)
 
 # -------------------------------------------------------------------------
@@ -22,7 +23,8 @@ class ChatBot(object):
 		ChatBot.__role = ''
 
 	def start(self, bot):
-		print("Чат-бот успешно запущен!\n")   
+		print("Чат-бот успешно запущен!\n")  
+		bot.polling() # TODO удалить после внедрения вебхуков
 		print("\nЧат-бот успешно остановлен!")
 
 	@staticmethod
