@@ -21,7 +21,6 @@ def index():
     json_string = request.get_data().decode('utf-8')
     update = ts.Update.de_json(json_string)
     __bot.process_new_updates([update])
-    # print(type(ts.Update.de_json(request.get_json()).message))
     return ''
 
 # -------------------------------------------------------------------------
